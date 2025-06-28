@@ -56,9 +56,8 @@ test-results/
 .env.local
 .env.*.local
 
-# IDE specific files
+# IDE specific files (except those explicitly allowed above)
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
