@@ -1,0 +1,24 @@
+Dear Hiring Manager,
+
+I'm excited to apply for the Technical Support Engineer position at {'name': 'QuestDB', 'batch': '(S20)', 'description': 'The fastest open source time series database', 'website': 'https://www.workatastartup.com/companies/questdb/website', 'twitter': 'https://twitter.com/QuestDb', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/3aef5c655cdc851ccad387554c204466a87669e7.png', 'alt': 'QuestDB'}, 'details': ['London, United Kingdom', '30 people', 'B2B Software and Services', 'Infrastructure']}. With my background in software engineering, I'm confident in my ability to contribute effectively to your team.
+
+### Why I'm a Great Fit
+I noticed that you're looking for someone with:
+- As a Technical Support Engineer at QuestDB, you’ll be the first line of technical support for our users and customers across open-source and enterprise environments. You’ll help developers troubleshoot issues, guide them through product usage, and ensure a smooth experience with our high-performance time series database.
+- This role is ideal for someone early in their career who is technically curious, communicative, proactive, and enjoys solving real-world problems. You’ll work closely with our engineering team, contribute to improving documentation and product feedback loops, and grow your skills in systems, databases, and developer tooling.
+- Requirements
+- Some experience with Linux/Unix systems and the command line
+- Excellent written communication skills in English
+
+
+### How I Can Add Value
+- Responsibilities
+
+
+### Why {'name': 'QuestDB', 'batch': '(S20)', 'description': 'The fastest open source time series database', 'website': 'https://www.workatastartup.com/companies/questdb/website', 'twitter': 'https://twitter.com/QuestDb', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/3aef5c655cdc851ccad387554c204466a87669e7.png', 'alt': 'QuestDB'}, 'details': ['London, United Kingdom', '30 people', 'B2B Software and Services', 'Infrastructure']}
+I'm particularly drawn to the innovative work {'name': 'QuestDB', 'batch': '(S20)', 'description': 'The fastest open source time series database', 'website': 'https://www.workatastartup.com/companies/questdb/website', 'twitter': 'https://twitter.com/QuestDb', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/3aef5c655cdc851ccad387554c204466a87669e7.png', 'alt': 'QuestDB'}, 'details': ['London, United Kingdom', '30 people', 'B2B Software and Services', 'Infrastructure']} is doing because I admire your commitment to excellence. I'm excited about the opportunity to contribute to your team and help drive meaningful results.
+
+I'd welcome the opportunity to discuss how my background and skills align with your needs. Thank you for your time and consideration.
+
+Best regards,
+[Your Name]

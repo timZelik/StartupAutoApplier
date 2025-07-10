@@ -22,6 +22,7 @@ class JobAutomator:
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
+        self.playwright = None
         
         # State
         self.logged_in = False
@@ -63,11 +64,12 @@ class JobAutomator:
         self.page = await self.context.new_page()
         
         # Enable request/response logging
-        self.page.on("request", lambda request: logger.debug(f"Request: {request.method} {request.url}"))
-        self.page.on("response", lambda response: logger.debug(f"Response: {response.status} {response.url}"))
-        
-        # Handle dialog boxes
-        self.page.on("dialog", lambda dialog: asyncio.create_task(dialog.accept()))
+        if self.page:
+            self.page.on("request", lambda request: logger.debug(f"Request: {request.method} {request.url}"))
+            self.page.on("response", lambda response: logger.debug(f"Response: {response.status} {response.url}"))
+            
+            # Handle dialog boxes
+            self.page.on("dialog", lambda dialog: asyncio.create_task(dialog.accept()))
         
         logger.info("Browser initialized")
     
@@ -78,22 +80,29 @@ class JobAutomator:
             await self.context.close()
         if self.browser:
             await self.browser.close()
-        if hasattr(self, 'playwright'):
+        if self.playwright:
             await self.playwright.stop()
         logger.info("Browser closed")
+    
+    def _ensure_page_initialized(self) -> Page:
+        """Ensure the page is initialized before use"""
+        if not self.page:
+            raise RuntimeError("Page not initialized. Call setup() first.")
+        return self.page
     
     async def login(self, email: str, password: str) -> bool:
         """Login to workatastartup.com with enhanced debugging"""
         if self.logged_in:
             return True
             
+        page = self._ensure_page_initialized()
         logger.info("Starting login process...")
         
         try:
             # Navigate to the login page directly
             login_url = "https://account.ycombinator.com/?continue=https%3A%2F%2Fwww.workatastartup.com%2F"
             logger.info(f"Navigating to login page: {login_url}")
-            await self.page.goto(login_url, wait_until="networkidle")
+            await page.goto(login_url, wait_until="networkidle")
             
             await self._navigate_to_login_page()
             await self._fill_login_form(email, password)
@@ -105,7 +114,7 @@ class JobAutomator:
                 return True
             else:
                 logger.error("Login verification failed")
-                await self.page.screenshot(path="login_verification_failed.png")
+                await page.screenshot(path="login_verification_failed.png")
                 await self._check_for_login_error_messages()
                 return False
                 
@@ -117,26 +126,28 @@ class JobAutomator:
 
     async def _navigate_to_login_page(self):
         """Navigates to the login page and waits for the form."""
+        page = self._ensure_page_initialized()
         login_url = "https://account.ycombinator.com/?continue=https%3A%2F%2Fwww.workatastartup.com%2F"
         logger.info(f"Navigating to login page: {login_url}")
-        await self.page.goto(login_url, wait_until="networkidle")
-        await self.page.screenshot(path="debug_login_page.png")
+        await page.goto(login_url, wait_until="networkidle")
+        await page.screenshot(path="debug_login_page.png")
         logger.info("Took screenshot: debug_login_page.png")
         logger.info("Waiting for login form...")
-        await self.page.wait_for_selector('form#sign-in-card', state="visible", timeout=10000)
-        current_url = self.page.url
+        await page.wait_for_selector('form#sign-in-card', state="visible", timeout=10000)
+        current_url = page.url
         if "account.ycombinator.com" not in current_url:
             logger.warning(f"Unexpected URL after navigation: {current_url}")
 
     async def _find_login_element(self, selectors: List[str], element_name: str, form_element=None) -> Optional[Any]:
         """Finds a login element using a list of selectors."""
+        page = self._ensure_page_initialized()
         element_field = None
         for selector in selectors:
             try:
                 if form_element:
                     element_field = await form_element.query_selector(selector)
                 else:
-                    element_field = await self.page.wait_for_selector(selector, timeout=2000, state="visible")
+                    element_field = await page.wait_for_selector(selector, timeout=2000, state="visible")
 
                 if element_field and await element_field.is_editable():
                     logger.info(f"Found {element_name} input with selector: {selector}")
@@ -148,6 +159,7 @@ class JobAutomator:
 
     async def _fill_login_form(self, email: str, password: str):
         """Fills the login form with email and password."""
+        page = self._ensure_page_initialized()
         email_input_selectors = [
             'input#ycid-input', 'input[name="username"]', 'input[type="email"]',
             'input[autocomplete="username"]', 'input[autocomplete="email"]',
@@ -169,7 +181,7 @@ class JobAutomator:
         if not email_field:
             for form_selector in form_selectors:
                 try:
-                    form = await self.page.wait_for_selector(form_selector, timeout=2000, state="visible")
+                    form = await page.wait_for_selector(form_selector, timeout=2000, state="visible")
                     if form:
                         logger.info(f"Found form with selector: {form_selector}")
                         email_field = await self._find_login_element(email_input_selectors, "email", form_element=form)
@@ -179,18 +191,18 @@ class JobAutomator:
                     logger.debug(f"Form selector {form_selector} did not work: {str(e)}")
 
         if not email_field:
-            await self.page.screenshot(path="login_form_not_found.png")
+            await page.screenshot(path="login_form_not_found.png")
             logger.error("Could not find email input field on the login page")
             raise Exception("Email input not found")
 
-        await self.page.screenshot(path="debug_login_form.png")
+        await page.screenshot(path="debug_login_form.png")
         logger.info(f"Filling in email: {email}")
         try:
             await email_field.click()
             await email_field.fill(email)
         except Exception as e:
             logger.error(f"Failed to fill email: {str(e)}")
-            await self.page.screenshot(path="email_fill_error.png")
+            await page.screenshot(path="email_fill_error.png")
             raise
 
         password_field = await self._find_login_element(password_input_selectors, "password", form_element=form)
@@ -199,7 +211,7 @@ class JobAutomator:
 
         if not password_field:
             logger.error("Could not find password field")
-            await self.page.screenshot(path="password_field_not_found.png")
+            await page.screenshot(path="password_field_not_found.png")
             raise Exception("Password input not found")
 
         logger.info("Filling in password...")
@@ -208,23 +220,25 @@ class JobAutomator:
             await password_field.fill(password)
         except Exception as e:
             logger.error(f"Failed to fill password: {str(e)}")
-            await self.page.screenshot(path="password_fill_error.png")
+            await page.screenshot(path="password_fill_error.png")
             raise
-        await self.page.screenshot(path="debug_filled_form.png")
+        await page.screenshot(path="debug_filled_form.png")
 
     async def _submit_login_form(self):
         """Submits the login form."""
+        page = self._ensure_page_initialized()
         submit_button_selectors = 'button[type="submit"], button:has-text("Log in"), button:has-text("Sign in")'
-        submit_button = await self.page.wait_for_selector(submit_button_selectors, timeout=5000)
+        submit_button = await page.wait_for_selector(submit_button_selectors, timeout=5000)
         if submit_button:
             await submit_button.click()
         else:
-            await self.page.keyboard.press('Enter')
+            await page.keyboard.press('Enter')
 
     async def _verify_login_success(self) -> bool:
         """Verifies if the login was successful."""
+        page = self._ensure_page_initialized()
         try:
-            await self.page.wait_for_selector(
+            await page.wait_for_selector(
                 'a[href*="/dashboard"], a[href*="/jobs"], [data-testid="user-avatar"], img[alt*="Profile"], .user-avatar',
                 timeout=15000
             )
@@ -235,7 +249,8 @@ class JobAutomator:
 
     async def _check_for_login_error_messages(self):
         """Checks for and logs any login error messages."""
-        error_message = await self.page.evaluate('''() => {
+        page = self._ensure_page_initialized()
+        error_message = await page.evaluate('''() => {
             const error = document.querySelector('.error-message, .alert-error, [role="alert"], .text-red-500, .text-red-600');
             return error ? error.innerText : null;
         }''')
@@ -243,51 +258,39 @@ class JobAutomator:
             logger.error(f"Login error: {error_message}")
     
     async def apply_filters(self, job_filter: JobFilter) -> bool:
-        """Apply job search filters"""
-        if not self.page or not self.logged_in:
+        """Navigate to the pre-filtered jobs page"""
+        if not self.logged_in:
             raise RuntimeError("Not logged in. Call login() first.")
             
-        logger.info("Applying filters...")
+        page = self._ensure_page_initialized()
+        logger.info("Navigating to filtered jobs page...")
         
         try:
-            # Navigate to jobs page
-            await self.page.goto(f"{self.BASE_URL}/jobs")
-            await self.page.wait_for_load_state("networkidle")
+            # Navigate to the pre-filtered URL that contains all relevant jobs
+            filtered_url = "https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&minExperience=0&minExperience=1&role=eng&role_type=fe&role_type=fs&role_type=be&sortBy=created_desc&tab=any&usVisaNotRequired=any"
             
-            # Apply experience filter (0-1 years)
-            await self.page.click('button:has-text("Experience Level")')
-            await self.page.click(f'button:has-text("{job_filter.experience_level}")')
+            await page.goto(filtered_url)
+            await page.wait_for_load_state("networkidle")
             
-            # Apply role filters
-            for role in job_filter.roles:
-                await self.page.click('button:has-text("Role")')
-                await self.page.click(f'button:has-text("{role}")')
-            
-            # Apply remote filter if needed
-            if job_filter.remote_only:
-                await self.page.click('button:has-text("Remote")')
-            
-            # Wait for results to load
-            await self.page.wait_for_selector('.job-listing', state='visible')
-            logger.info("Filters applied successfully")
+            # Wait for the directory list to load
+            await page.wait_for_selector('.directory-list', state='visible', timeout=10000)
+            logger.info("Successfully navigated to filtered jobs page")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to apply filters: {str(e)}")
+            logger.error(f"Failed to navigate to filtered page: {str(e)}")
             if self.page:
                 await self.page.screenshot(path="filter_error.png")
             raise
     
     async def get_job_listings(self, max_listings: int = 10) -> List[Dict[str, Any]]:
         """Extract job listings from the current page"""
-        if not self.page:
-            raise RuntimeError("Browser not initialized. Call setup() first.")
-            
+        page = self._ensure_page_initialized()
         logger.info(f"Extracting up to {max_listings} job listings...")
         
         try:
-            # Wait for job listings to load
-            await self.page.wait_for_selector('.job-card, [data-testid="job-card"], .job-listing, .job-item', timeout=10000)
+            # Wait for the directory list to load
+            await page.wait_for_selector('.directory-list', timeout=10000)
             
             await self._scroll_to_load_jobs(max_listings)
             jobs = await self._extract_job_data_from_page()
@@ -310,86 +313,183 @@ class JobAutomator:
 
     async def _scroll_to_load_jobs(self, max_listings: int):
         """Scrolls the page to load job listings dynamically."""
-        last_height = await self.page.evaluate('document.body.scrollHeight')
-        job_selector = '.job-card, [data-testid="job-card"], .job-listing, .job-item'
+        page = self._ensure_page_initialized()
+        last_height = await page.evaluate('document.body.scrollHeight')
+        job_selector = '.bg-beige-lighter.mb-5.rounded.pb-4'
 
-        while len(await self.page.query_selector_all(job_selector)) < max_listings:
-            await self.page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        while len(await page.query_selector_all(job_selector)) < max_listings:
+            await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
             await asyncio.sleep(1.5) # Wait for content to load
 
-            new_height = await self.page.evaluate('document.body.scrollHeight')
+            new_height = await page.evaluate('document.body.scrollHeight')
             if new_height == last_height:
                 break # Reached end of page
             last_height = new_height
 
-            if len(await self.page.query_selector_all(job_selector)) >= max_listings:
+            if len(await page.query_selector_all(job_selector)) >= max_listings:
                 break
 
     async def _extract_job_data_from_page(self) -> List[Dict[str, Any]]:
-        """Extracts job data from the current page content."""
-        return await self.page.evaluate("""() => {
-            const jobSelectors = [
-                '.job-card', '[data-testid="job-card"]', '.job-listing', '.job-item',
-                'div[class*="job"], article[class*="job"]', 'div[data-cy*="job"], article[data-cy*="job"]',
-                'div[data-test*="job"], article[data-test*="job"]', 'div[role="article"]',
-                'div[itemtype*="JobPosting"]', 'div[itemscope][itemtype*="JobPosting"]'
-            ];
+        """Extracts job data from the current page content using the specific HTML structure."""
+        page = self._ensure_page_initialized()
+        return await page.evaluate("""() => {
+            const jobContainers = document.querySelectorAll('.bg-beige-lighter.mb-5.rounded.pb-4');
+            const jobs = [];
 
-            const jobElements = [];
-            for (const selector of jobSelectors) {
-                const elements = Array.from(document.querySelectorAll(selector));
-                for (const el of elements) {
-                    if (!jobElements.includes(el) && (el.innerText.length > 50 || el.querySelector('a[href*="job"]'))) {
-                        jobElements.push(el);
-                    }
+            jobContainers.forEach(container => {
+                // Extract company information
+                const companyNameEl = container.querySelector('.company-name');
+                const companyName = companyNameEl ? companyNameEl.textContent.trim() : 'Unknown Company';
+                
+                const companyBatchEl = container.querySelector('.text-gray-400');
+                const companyBatch = companyBatchEl ? companyBatchEl.textContent.trim() : '';
+                
+                const companyDescriptionEl = container.querySelector('.text-gray-700');
+                const companyDescription = companyDescriptionEl ? companyDescriptionEl.textContent.trim() : '';
+                
+                // Extract company links
+                const websiteEl = container.querySelector('a[href*="/website"]');
+                const website = websiteEl ? websiteEl.href : '';
+                
+                const twitterEl = container.querySelector('a[href*="twitter.com"], a[href*="x.com"]');
+                const twitter = twitterEl ? twitterEl.href : '';
+                
+                // Extract company details (location, size, industry)
+                const detailLabels = container.querySelectorAll('.detail-label');
+                const details = Array.from(detailLabels).map(label => label.textContent.trim());
+                
+                // Extract all job listings within this company container
+                const jobElements = container.querySelectorAll('.job-name a[href*="/jobs/"]');
+                
+                jobElements.forEach(jobEl => {
+                    const jobUrl = jobEl.href;
+                    const jobTitle = jobEl.textContent.trim();
+                    
+                    // Extract job ID from URL
+                    const jobIdMatch = jobUrl.match(/\\/jobs\\/(\\d+)/);
+                    const jobId = jobIdMatch ? jobIdMatch[1] : `job-${Math.random().toString(36).substring(2, 9)}`;
+                    
+                    // Find the parent job container to get metadata
+                    const jobContainer = jobEl.closest('.mb-4');
+                    const metadataElements = jobContainer ? jobContainer.querySelectorAll('.mr-2.text-sm span') : [];
+                    const metadata = Array.from(metadataElements).map(el => el.textContent.trim());
+                    
+                    // Extract salary, equity, experience from metadata
+                    let salary = '', equity = '', experience = '', location = '', jobType = '', visa = '';
+                    metadata.forEach((meta, index) => {
+                        if (meta.includes('$') || meta.includes('€') || meta.includes('K')) {
+                            salary = meta;
+                        } else if (meta.includes('%')) {
+                            equity = meta;
+                        } else if (meta.includes('years') || meta.includes('grads')) {
+                            experience = meta;
+                        } else if (meta.includes(',') && (meta.includes('US') || meta.includes('GB') || meta.includes('ES') || meta.includes('IN'))) {
+                            location = meta;
+                        } else if (meta === 'fulltime' || meta === 'parttime') {
+                            jobType = meta;
+                        } else if (meta.includes('visa') || meta.includes('citizen') || meta.includes('sponsor')) {
+                            visa = meta;
+                        }
+                    });
+                    
+                    // Find the "View job" button
+                    const viewJobButton = jobContainer ? jobContainer.querySelector('a.rounded-md.bg-brand') : null;
+                    const viewJobUrl = viewJobButton ? viewJobButton.href : jobUrl;
+                    
+                    // Check if there's an "Apply" button (for companies without specific jobs)
+                    const applyButton = container.querySelector('a.bg-orange-500, button.bg-orange-500');
+                    const hasApplyButton = !!applyButton;
+                    
+                    // Extract company logo
+                    const logoEl = container.querySelector('img[alt]');
+                    const logoUrl = logoEl ? logoEl.src : '';
+                    const logoAlt = logoEl ? logoEl.alt : '';
+                    
+                    const jobData = {
+                        id: jobId,
+                        title: jobTitle,
+                        company: {
+                            name: companyName,
+                            batch: companyBatch,
+                            description: companyDescription,
+                            website: website,
+                            twitter: twitter,
+                            logo: {
+                                url: logoUrl,
+                                alt: logoAlt
+                            },
+                            details: details
+                        },
+                        location: location,
+                        salary: salary,
+                        equity: equity,
+                        experience: experience,
+                        jobType: jobType,
+                        visa: visa,
+                        url: jobUrl,
+                        viewJobUrl: viewJobUrl,
+                        hasApplyButton: hasApplyButton,
+                        metadata: metadata,
+                        extractedAt: new Date().toISOString()
+                    };
+                    
+                    jobs.push(jobData);
+                });
+                
+                // Handle companies with no specific jobs but have an "Apply" button
+                if (jobElements.length === 0 && hasApplyButton) {
+                    const applyUrl = applyButton.href || '';
+                    
+                    const generalJobData = {
+                        id: `general-${companyName.toLowerCase().replace(/\\s+/g, '-')}`,
+                        title: `General Application - ${companyName}`,
+                        company: {
+                            name: companyName,
+                            batch: companyBatch,
+                            description: companyDescription,
+                            website: website,
+                            twitter: twitter,
+                            logo: {
+                                url: logoUrl,
+                                alt: logoAlt
+                            },
+                            details: details
+                        },
+                        location: details.find(d => d.includes(',')) || '',
+                        salary: '',
+                        equity: '',
+                        experience: '',
+                        jobType: 'fulltime',
+                        visa: '',
+                        url: applyUrl,
+                        viewJobUrl: applyUrl,
+                        hasApplyButton: true,
+                        metadata: details,
+                        extractedAt: new Date().toISOString()
+                    };
+                    
+                    jobs.push(generalJobData);
                 }
-                if (jobElements.length >= 30) break;
-            }
-
-            return jobElements.map(job => {
-                const titleEl = job.querySelector('[data-qa*="job-title"], [data-test*="job-title"], h2, h3, .job-title, .title');
-                const companyEl = job.querySelector('[data-qa*="company"], [data-test*="company"], .company, .company-name, .employer');
-                const locationEl = job.querySelector('[data-qa*="location"], [data-test*="location"], .location, .job-location, .job-metadata');
-                let url = job.querySelector('a[href*="job"], a[href*="jobs"]')?.href || '';
-                if (url.startsWith('/')) url = window.location.origin + url;
-
-                let jobId = '';
-                if (url) {
-                    const match = url.match(/\/jobs?\/(\d+)/) || url.match(/\/jobs?\/[^/]+-(\d+)/);
-                    if (match && match[1]) jobId = match[1];
-                }
-                if (!jobId) {
-                    jobId = job.getAttribute('data-job-id') || job.getAttribute('id') ||
-                            job.closest('[data-job-id]')?.getAttribute('data-job-id') ||
-                            `job-${Math.random().toString(36).substr(2, 9)}`;
-                }
-                const description = (job.innerText || '').trim().substring(0, 200) + ((job.innerText || '').length > 200 ? '...' : '');
-
-                return {
-                    id: jobId,
-                    title: titleEl ? titleEl.innerText.trim() : 'Untitled Position',
-                    company: companyEl ? companyEl.innerText.trim() : 'Unknown Company',
-                    location: locationEl ? locationEl.innerText.trim() : 'Remote',
-                    url: url,
-                    description: description
-                };
             });
+            
+            return jobs;
         }""")
     
     async def process_job_application(self, job: Dict[str, Any]) -> Dict[str, Any]:
         """Process a single job application (test mode - doesn't submit)"""
-        if not self.page or not self.logged_in:
+        if not self.logged_in:
             raise RuntimeError("Not logged in. Call login() first.")
             
+        page = self._ensure_page_initialized()
         logger.info(f"Processing job application: {job.get('title', 'Unknown')}")
         
         try:
             # Navigate to job page
             logger.info(f"Navigating to job page: {job.get('url')}")
-            await self.page.goto(job['url'])
-            await self.page.wait_for_load_state("networkidle")
+            await page.goto(job['url'])
+            await page.wait_for_load_state("networkidle")
             
-            await self.page.screenshot(path=f"job_page_{job.get('id', 'unknown')}.png")
+            await page.screenshot(path=f"job_page_{job.get('id', 'unknown')}.png")
             
             job_details = await self._extract_job_details()
             full_job_info = self._compile_full_job_info(job, job_details)
@@ -422,14 +522,15 @@ class JobAutomator:
             
             return {
                 **job,
-                status: "error",
-                success: False,
-                error: str(e),
-                job_id: job.get('id', 'unknown')
+                "status": "error",
+                "success": False,
+                "error": str(e),
+                "job_id": job.get('id', 'unknown')
             }
 
     async def _extract_job_details(self) -> Dict[str, str]:
         """Extracts full job description and HTML content from the job page."""
+        self._ensure_page_initialized()
         return await self.page.evaluate("""() => {
             const descriptionSelectors = [
                 '.job-description', '.job-description-content', '[data-testid="job-description"]',
@@ -461,7 +562,7 @@ class JobAutomator:
                 return {
                     full_description: mainContent.innerText.trim(),
                     html_content: mainContent.innerHTML,
-                    found_using: mainContent.tagName.toLowerCase() + (mainContent.id ? '#' + mainContent.id : '') + (mainContent.className ? '.' + mainContent.className.replace(/\s+/g, '.') : '')
+                    found_using: mainContent.tagName.toLowerCase() + (mainContent.id ? '#' + mainContent.id : '') + (mainContent.className ? '.' + mainContent.className.replace(/\\s+/g, '.') : '')
                 };
             }
             return {
@@ -499,6 +600,7 @@ class JobAutomator:
 
     async def _find_and_log_apply_button(self):
         """Finds the apply button and logs its presence or alternatives."""
+        self._ensure_page_initialized()
         apply_button_texts = [
             "Apply Now", "Apply", "Apply for this job", "Apply for position",
             "Submit application", "Apply with Indeed", "Apply with LinkedIn",
@@ -527,6 +629,7 @@ class JobAutomator:
 
     async def _log_page_button_structure(self):
         """Logs the structure of all buttons on the page for debugging."""
+        self._ensure_page_initialized()
         page_structure = await self.page.evaluate("""() => {
             function getPath(element) {
                 if (!element || !element.tagName) return '';
@@ -547,7 +650,7 @@ class JobAutomator:
             const buttons = [];
             document.querySelectorAll('button, a[role="button"], input[type="button"], input[type="submit"]').forEach(btn => {
                 buttons.push({
-                    text: btn.innerText.replace(/\s+/g, ' ').trim(), tag: btn.tagName,
+                    text: btn.innerText.replace(/\\s+/g, ' ').trim(), tag: btn.tagName,
                     id: btn.id || '', classes: btn.className || '', path: getPath(btn)
                 });
             });
@@ -739,8 +842,7 @@ Best regards,
         Clicks the 'Send message' button on a job application page.
         Note: This method is not yet used in the main workflow.
         """
-        if not self.page:
-            raise RuntimeError("Page not initialized. Call setup() and navigate to a job page first.")
+        self._ensure_page_initialized()
 
         logger.info("Attempting to click the 'Send message' button...")
         try:
@@ -791,8 +893,7 @@ Best regards,
             job_index: The index of the 'View job' button to click (0-based).
                        Defaults to the first button found.
         """
-        if not self.page:
-            raise RuntimeError("Page not initialized. Call setup() and navigate to the jobs page first.")
+        self._ensure_page_initialized()
 
         logger.info(f"Attempting to click 'View job' button at index {job_index}...")
         try:
