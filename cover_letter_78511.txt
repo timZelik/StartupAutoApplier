@@ -1,0 +1,20 @@
+Dear Hiring Manager,
+
+I'm excited to apply for the Applied AI Engineer position at {'name': 'Pickle', 'batch': '(W25)', 'description': "We're building a living digital clone for everyone.", 'website': 'https://www.workatastartup.com/companies/pickle-2/website', 'twitter': 'https://x.com/pickle_ai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/a0f92e072e4f993baab572733893cd29241e4b38.png', 'alt': 'Pickle'}, 'details': ['San Francisco', '7 people', 'Consumer', 'Social']}. With my background in software engineering, I'm confident in my ability to contribute effectively to your team.
+
+### Why I'm a Great Fit
+I noticed that you're looking for someone with:
+- Strong problem-solving skills and a passion for technology
+
+
+### How I Can Add Value
+- About the responsibilities
+
+
+### Why {'name': 'Pickle', 'batch': '(W25)', 'description': "We're building a living digital clone for everyone.", 'website': 'https://www.workatastartup.com/companies/pickle-2/website', 'twitter': 'https://x.com/pickle_ai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/a0f92e072e4f993baab572733893cd29241e4b38.png', 'alt': 'Pickle'}, 'details': ['San Francisco', '7 people', 'Consumer', 'Social']}
+I'm particularly drawn to the innovative work {'name': 'Pickle', 'batch': '(W25)', 'description': "We're building a living digital clone for everyone.", 'website': 'https://www.workatastartup.com/companies/pickle-2/website', 'twitter': 'https://x.com/pickle_ai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/a0f92e072e4f993baab572733893cd29241e4b38.png', 'alt': 'Pickle'}, 'details': ['San Francisco', '7 people', 'Consumer', 'Social']} is doing because I admire your commitment to excellence. I'm excited about the opportunity to contribute to your team and help drive meaningful results.
+
+I'd welcome the opportunity to discuss how my background and skills align with your needs. Thank you for your time and consideration.
+
+Best regards,
+[Your Name]

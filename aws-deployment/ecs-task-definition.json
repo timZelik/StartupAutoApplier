@@ -1,0 +1,65 @@
+{
+  "family": "startup-auto-applier",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/startup-auto-applier-task-role",
+  "containerDefinitions": [
+    {
+      "name": "startup-auto-applier",
+      "image": "YOUR_ACCOUNT_ID.dkr.ecr.YOUR_REGION.amazonaws.com/startup-auto-applier:latest",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/startup-auto-applier",
+          "awslogs-region": "YOUR_REGION",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {
+          "name": "HEADLESS",
+          "value": "true"
+        },
+        {
+          "name": "MAX_APPLICATIONS",
+          "value": "10"
+        },
+        {
+          "name": "RECORD_VIDEO",
+          "value": "false"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "WORK_AT_A_STARTUP_EMAIL",
+          "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:startup-auto-applier/email"
+        },
+        {
+          "name": "WORK_AT_A_STARTUP_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:startup-auto-applier/password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared-storage",
+          "containerPath": "/app/shared",
+          "readOnly": false
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "shared-storage",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "YOUR_EFS_ID",
+        "rootDirectory": "/",
+        "transitEncryption": "ENABLED"
+      }
+    }
+  ]
+} 

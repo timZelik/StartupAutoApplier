@@ -1,0 +1,20 @@
+Dear Hiring Manager,
+
+I'm excited to apply for the Founding Engineer position at {'name': 'Meticulate', 'batch': '(W24)', 'description': 'Powerful prospecting engine for revenue leaders', 'website': 'https://www.workatastartup.com/companies/meticulate/website', 'twitter': '', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/c3761b435e24919662b3cb0d2c5381a1f5398ba3.png', 'alt': 'Meticulate'}, 'details': ['San Francisco', '3 people', 'B2B Software and Services']}. With my background in software engineering, I'm confident in my ability to contribute effectively to your team.
+
+### Why I'm a Great Fit
+I noticed that you're looking for someone with:
+- Skills: Python, TypeScript
+
+
+### How I Can Add Value
+- We’re hiring a founding engineer! you’ll be working closely with us (co-founders joseph + wilbur) on the engineering team and you’ll have significant ownership over the parts of the product you want to cover. as an early engineer, i can be all over the codebase, from spinning up infra to placing pixels on the frontend.
+
+
+### Why {'name': 'Meticulate', 'batch': '(W24)', 'description': 'Powerful prospecting engine for revenue leaders', 'website': 'https://www.workatastartup.com/companies/meticulate/website', 'twitter': '', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/c3761b435e24919662b3cb0d2c5381a1f5398ba3.png', 'alt': 'Meticulate'}, 'details': ['San Francisco', '3 people', 'B2B Software and Services']}
+I'm particularly drawn to the innovative work {'name': 'Meticulate', 'batch': '(W24)', 'description': 'Powerful prospecting engine for revenue leaders', 'website': 'https://www.workatastartup.com/companies/meticulate/website', 'twitter': '', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/c3761b435e24919662b3cb0d2c5381a1f5398ba3.png', 'alt': 'Meticulate'}, 'details': ['San Francisco', '3 people', 'B2B Software and Services']} is doing because I admire your commitment to excellence. I'm excited about the opportunity to contribute to your team and help drive meaningful results.
+
+I'd welcome the opportunity to discuss how my background and skills align with your needs. Thank you for your time and consideration.
+
+Best regards,
+[Your Name]

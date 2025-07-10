@@ -1,0 +1,22 @@
+Dear Hiring Manager,
+
+I'm excited to apply for the Founding Senior AI Automation & Support Engineer position at {'name': 'Retell AI', 'batch': '(W24)', 'description': 'Supercharge Your Contact Center Operations with AI Phone Agents', 'website': 'https://www.workatastartup.com/companies/retell-ai/website', 'twitter': 'https://twitter.com/retellai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/e52cdc0c1e4177276aba7fa2d8e4326d287620ca.png', 'alt': 'Retell AI'}, 'details': ['10 people', 'B2B Software and Services', 'Infrastructure']}. With my background in software engineering, I'm confident in my ability to contribute effectively to your team.
+
+### Why I'm a Great Fit
+I noticed that you're looking for someone with:
+- Skills: Next.js, CSS, HTML, Node.js, React, Software Architecture
+- As a Senior AI Automation & Support Engineer, you’ll be at the heart of Retell AI’s mission to empower customers with seamless voice AI solutions. You’ll handle all daily support tickets, taking ownership of most L2 tickets and collaborating with product engineers on complex L3 tickets. With your remaining time, you’ll focus on automating repetitive tasks to reduce ticket volume, leveraging our support platform (Pylon) and tech stack (React, Node.js, AWS). You’ll debug issues, build internal tools, and enhance self-serve experiences, shaping our support strategy and redefining how customers interact with our platform.
+- Performance-Based: Offers tied to interview performance, not experience or past salaries.
+
+
+### How I Can Add Value
+- Key responsibilities
+
+
+### Why {'name': 'Retell AI', 'batch': '(W24)', 'description': 'Supercharge Your Contact Center Operations with AI Phone Agents', 'website': 'https://www.workatastartup.com/companies/retell-ai/website', 'twitter': 'https://twitter.com/retellai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/e52cdc0c1e4177276aba7fa2d8e4326d287620ca.png', 'alt': 'Retell AI'}, 'details': ['10 people', 'B2B Software and Services', 'Infrastructure']}
+I'm particularly drawn to the innovative work {'name': 'Retell AI', 'batch': '(W24)', 'description': 'Supercharge Your Contact Center Operations with AI Phone Agents', 'website': 'https://www.workatastartup.com/companies/retell-ai/website', 'twitter': 'https://twitter.com/retellai', 'logo': {'url': 'https://bookface-images.s3.amazonaws.com/small_logos/e52cdc0c1e4177276aba7fa2d8e4326d287620ca.png', 'alt': 'Retell AI'}, 'details': ['10 people', 'B2B Software and Services', 'Infrastructure']} is doing because I admire your commitment to excellence. I'm excited about the opportunity to contribute to your team and help drive meaningful results.
+
+I'd welcome the opportunity to discuss how my background and skills align with your needs. Thank you for your time and consideration.
+
+Best regards,
+[Your Name]
